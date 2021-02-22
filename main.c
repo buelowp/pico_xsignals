@@ -1,5 +1,5 @@
 /*
-Pico Traffic Signals
+Pico RR Crossing Signals
 Copyright (C) 2021  goballstate at gmail
 
 This program is free software: you can redistribute it and/or modify

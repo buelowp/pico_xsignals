@@ -3561,6 +3561,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="J9" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_02" device="" package3d_urn="urn:adsk.eagle:package:38039/1" value="POWER"/>
 <part name="D1" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="1N4004" device="" package3d_urn="urn:adsk.eagle:package:6240344/1"/>
 <part name="C1" library="SparkFun-Capacitors" library_urn="urn:adsk.eagle:library:510" deviceset="100UF-POLAR" device="-RADIAL-2.5MM-25V-20%" package3d_urn="urn:adsk.eagle:package:37415/1" value="100uF"/>
+<part name="J10" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_02" device="" package3d_urn="urn:adsk.eagle:package:38039/1" value="SIGNAL"/>
 </parts>
 <sheets>
 <sheet>
@@ -3705,6 +3706,10 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <attribute name="NAME" x="191.516" y="81.915" size="1.778" layer="95" font="vector"/>
 <attribute name="VALUE" x="191.516" y="77.089" size="1.778" layer="96" font="vector"/>
 </instance>
+<instance part="J10" gate="G$1" x="20.32" y="109.22" smashed="yes">
+<attribute name="VALUE" x="17.78" y="104.394" size="1.778" layer="96" font="vector"/>
+<attribute name="NAME" x="17.78" y="114.808" size="1.778" layer="95" font="vector"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -3813,6 +3818,11 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="190.5" y1="76.2" x2="180.34" y2="76.2" width="0.1524" layer="91"/>
 <junction x="190.5" y="76.2"/>
 <label x="180.34" y="76.2" size="1.016" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="J10" gate="G$1" pin="2"/>
+<wire x1="27.94" y1="111.76" x2="43.18" y2="111.76" width="0.1524" layer="91"/>
+<label x="43.18" y="111.76" size="1.016" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="OSDGND" class="0">
@@ -4167,6 +4177,18 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <pinref part="J9" gate="G$1" pin="1"/>
 <pinref part="D1" gate="1" pin="A"/>
 <wire x1="218.44" y1="83.82" x2="213.36" y2="83.82" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="GP17" class="0">
+<segment>
+<pinref part="J10" gate="G$1" pin="1"/>
+<wire x1="27.94" y1="109.22" x2="43.18" y2="109.22" width="0.1524" layer="91"/>
+<label x="43.18" y="109.22" size="1.016" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="X1" gate="G$1" pin="GP17"/>
+<wire x1="162.56" y1="152.4" x2="175.26" y2="152.4" width="0.1524" layer="91"/>
+<label x="175.26" y="152.4" size="1.016" layer="95" xref="yes"/>
 </segment>
 </net>
 </nets>

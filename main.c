@@ -31,12 +31,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SIGNAL_3    16
 #define SIGNAL_4    18
 
+#define NOTIFIER    17
+
 #define BLINK_DELAY 1000
 
 static bool g_signalsOn;
 static bool g_fourSensorMode;
 static bool g_timerActive;
 static uint g_lastEventGpio;
+static uint g_waitingForEventSignal;
 repeating_timer_t g_timer;
 
 void turnoff()
@@ -45,6 +48,7 @@ void turnoff()
     gpio_put(SIGNAL_3, false);
     gpio_put(SIGNAL_2, false);
     gpio_put(SIGNAL_4, false);
+    gpio_put(NOTIFIER, false);
 
 }
 
@@ -72,25 +76,70 @@ bool alternate(repeating_timer_t *rt)
     return true;
 }
 
-/**
- * This assumes that creating a timer is safe in an IRQ context.
- */
-void detection_callback(uint gpio, uint32_t events)
+void sensor1(uint gpio, uint32_t events)
 {
-    if (gpio == DETECT_1 || gpio == DETECT_4) {
-        if (!g_signalsOn) {
-            g_timerActive = add_repeating_timer_ms(BLINK_DELAY, &alternate, NULL, &g_timer);
-        }
-        if (!g_fourSensorMode && g_timerActive && g_signalsOn) {
-            cancel_repeating_timer(&g_timer);
+    if (g_timerActive) {
+        if (g_waitingForEventSignal == DETECT_1) {
             turnoff();
+            cancel_repeating_timer(&g_timer);
+            g_timerActive = false;
+            g_waitingForEventSignal = 0;
         }
     }
+    else {
+        g_timerActive = add_repeating_timer_ms(BLINK_DELAY, &alternate, NULL, &g_timer);
+        gpio_put(NOTIFIER, true);
+        if (g_fourSensorMode) {
+            g_waitingForEventSignal = DETECT_3;
+        }
+        else {
+            g_waitingForEventSignal = DETECT_4;
+        }
+    }
+}
 
-    if (gpio == DETECT_2 || gpio == DETECT_3) {
-        if (g_signalsOn && g_timerActive) {
-            cancel_repeating_timer(&g_timer);
+void sensor2(uint gpio, uint32_t events)
+{
+    if (g_timerActive) {
+        if (g_waitingForEventSignal == DETECT_2) {
             turnoff();
+            cancel_repeating_timer(&g_timer);
+            g_timerActive = false;
+            g_waitingForEventSignal = 0;
+        }
+    }
+}
+
+void sensor3(uint gpio, uint32_t events)
+{
+    if (g_timerActive) {
+        if (g_waitingForEventSignal == DETECT_3) {
+            turnoff();
+            cancel_repeating_timer(&g_timer);
+            g_timerActive = false;
+            g_waitingForEventSignal = 0;
+        }
+    }
+}
+
+void sensor4(uint gpio, uint32_t events)
+{
+    if (g_timerActive) {
+        if (g_waitingForEventSignal == DETECT_4) {
+            turnoff();
+            cancel_repeating_timer(&g_timer);
+            g_timerActive = false;
+            g_waitingForEventSignal = 0;
+        }
+    }
+    else {
+        g_timerActive = add_repeating_timer_ms(BLINK_DELAY, &alternate, NULL, &g_timer);
+        gpio_put(NOTIFIER, true);
+        if (g_fourSensorMode) {
+            g_waitingForEventSignal = DETECT_2;
+        }
+        else {
+            g_waitingForEventSignal = DETECT_1;
         }
     }
 }
@@ -107,6 +156,7 @@ void setup_gpio()
     gpio_init(SIGNAL_2);
     gpio_init(SIGNAL_3);
     gpio_init(SIGNAL_4);
+    gpio_init(NOTIFIER);
 
 /*
     It isn't clear if I have to do this prior to calling irq_enabled
@@ -120,11 +170,13 @@ void setup_gpio()
     gpio_set_dir(SIGNAL_2, GPIO_OUT);
     gpio_set_dir(SIGNAL_3, GPIO_OUT);
     gpio_set_dir(SIGNAL_4, GPIO_OUT);
+    gpio_set_dir(NOTIFIER, GPIO_OUT);
 
     gpio_put(SIGNAL_1, false);
     gpio_put(SIGNAL_2, false);
     gpio_put(SIGNAL_3, false);
     gpio_put(SIGNAL_4, false);
+    gpio_put(NOTIFIER, false);
 }
 
 /**
@@ -134,14 +186,14 @@ void setup_gpio()
  */
 bool check_for_four_sensors()
 {
-    gpio_set_irq_enabled_with_callback(DETECT_1, GPIO_IRQ_EDGE_FALL, true, &detection_callback);
-    gpio_set_irq_enabled_with_callback(DETECT_4, GPIO_IRQ_EDGE_FALL, true, &detection_callback);
+    gpio_set_irq_enabled_with_callback(DETECT_1, GPIO_IRQ_EDGE_FALL, true, &sensor1);
+    gpio_set_irq_enabled_with_callback(DETECT_4, GPIO_IRQ_EDGE_FALL, true, &sensor4);
 
     if (gpio_get(DETECT_2) == 1 && gpio_get(DETECT_3) == 1) {
         printf("%s: Enabling 4 detector mode", __FUNCTION__);
         g_fourSensorMode = true;
-        gpio_set_irq_enabled_with_callback(DETECT_2, GPIO_IRQ_EDGE_FALL, true, &detection_callback);
-        gpio_set_irq_enabled_with_callback(DETECT_3, GPIO_IRQ_EDGE_FALL, true, &detection_callback);
+        gpio_set_irq_enabled_with_callback(DETECT_2, GPIO_IRQ_EDGE_RISE, true, &sensor2);
+        gpio_set_irq_enabled_with_callback(DETECT_3, GPIO_IRQ_EDGE_RISE, true, &sensor3);
         return true;
     }
     return false;

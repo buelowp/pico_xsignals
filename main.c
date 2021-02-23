@@ -39,6 +39,15 @@ static bool g_timerActive;
 static uint g_lastEventGpio;
 repeating_timer_t g_timer;
 
+void turnoff()
+{
+    gpio_put(SIGNAL_1, false);
+    gpio_put(SIGNAL_3, false);
+    gpio_put(SIGNAL_2, false);
+    gpio_put(SIGNAL_4, false);
+
+}
+
 bool alternate(repeating_timer_t *rt)
 {
     static int lastside = 0;
@@ -74,12 +83,14 @@ void detection_callback(uint gpio, uint32_t events)
         }
         if (!g_fourSensorMode && g_timerActive && g_signalsOn) {
             cancel_repeating_timer(&g_timer);
+            turnoff();
         }
     }
 
     if (gpio == DETECT_2 || gpio == DETECT_3) {
         if (g_signalsOn && g_timerActive) {
             cancel_repeating_timer(&g_timer);
+            turnoff();
         }
     }
 }
